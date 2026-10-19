@@ -1,0 +1,108 @@
+/* 11.0: touch-first vertical layout and one desktop navigation column. */
+html,body {width:100%;height:100%;margin:0;overflow:hidden;}
+#game-container {--text-scale:1;--button-scale:1;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;border:0!important;border-radius:0!important;position:relative;}
+#game-container #gameCanvas {position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;}
+#game-container.layout-horizontal #gameCanvas {left:196px;width:calc(100% - 196px);}
+#game-container #desktop-sidebar {left:0;width:196px;box-sizing:border-box;}
+#game-container #desktop-dev-sidebar {display:none!important;}
+#game-container .ui-layer {padding:12px;box-sizing:border-box;inset:0;overflow:auto;}
+#game-container.layout-horizontal .ui-layer {left:196px;right:0;}
+#game-container .window-content {box-sizing:border-box;width:100%;max-width:760px;max-height:calc(100dvh - 24px);overflow:auto;padding:18px;}
+#game-container :is(button,input,select) {font-size:calc(14px * var(--text-scale))!important;}
+#game-container button {min-height:calc(44px * var(--button-scale));touch-action:manipulation;cursor:pointer;}
+#game-container :is(p,label,.world-row,small) {line-height:1.45;}
+#game-container .window-content p {font-size:calc(14px * var(--text-scale));}
+#game-container button:disabled {opacity:.45;cursor:not-allowed;}
+#game-container a {color:#175472;}
+#game-container #screen-menu .window-content {max-width:580px!important;}
+#game-container #screen-menu {background:linear-gradient(135deg,rgba(14,31,38,.92),rgba(31,56,58,.82)),url('assets/v11/city-milishion-backdrop.png') center/cover;}
+.environment-switch {display:flex;gap:8px;justify-content:center;margin:12px 0;}
+#game-container .environment-switch button {min-width:100px;}
+#game-container .environment-switch .active {background:#d6ebdc!important;border:2px solid #387453!important;}
+#environment-label {font-size:13px;color:#334155;}
+.legacy-link {margin-top:20px;}
+.interface-options {display:grid;gap:18px;margin:20px 0;}
+.interface-options label {display:flex;align-items:center;gap:12px;justify-content:space-between;}
+#game-container #hud {left:6px;right:6px;top:6px;width:auto;box-sizing:border-box;}
+#game-container.layout-horizontal #hud {left:202px;right:6px;}
+#game-container #hud .hud-group {flex-wrap:wrap;gap:4px;}
+#game-container #hud button {padding:6px 9px;}
+#world-toolbar {display:none;position:absolute;bottom:12px;left:8px;right:8px;gap:6px;justify-content:center;z-index:12;}
+#game-container.exploring #world-toolbar {display:flex;}
+#game-container.layout-horizontal #world-toolbar {left:204px;}
+#game-container #world-toolbar button {background:#f2f4e9;color:#172f3b;padding:8px 12px;box-shadow:0 2px 9px #0004;}
+#game-container #city-panel {left:8px;right:8px;top:8px;bottom:8px;width:auto;max-width:860px;margin:auto;max-height:calc(100dvh - 16px);height:auto;box-sizing:border-box;overflow:auto;padding:14px;z-index:40;}
+#game-container.layout-horizontal #city-panel {left:204px;right:8px;}
+#game-container #city-panel::before {background:#f1f3ed!important;}
+#city-scene {display:block;width:100%;height:200px;object-fit:cover;image-rendering:pixelated;border-radius:12px;margin:10px 0;}
+#city-reputation {font-size:12px;margin:4px 0;}
+#game-container #city-panel .city-actions {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+#game-container #city-panel .city-actions button {min-height:112px!important;}
+#game-container #city-panel .city-app-icon {width:48px!important;height:48px!important;flex-basis:48px!important;background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;}
+#game-container #city-panel img {image-rendering:pixelated;}
+.world-row {display:grid;grid-template-columns:80px 1fr auto auto;gap:8px;align-items:center;border-bottom:1px solid #cbd5d5;padding:10px 0;}
+.world-row img {image-rendering:pixelated;}
+.world-row small {display:block;font-size:12px;}
+.event-card,.lore-team article,.rune-forge {padding:14px;margin:10px 0;border:1px solid #cad5d6;border-radius:10px;background:#f5f7f3;}
+.rune-forge label {display:flex;gap:12px;margin:12px 0;align-items:center;}
+.rune-forge select {max-width:75%;padding:8px;}
+#game-container #action-log {bottom:74px;left:8px;max-width:340px;max-height:100px;pointer-events:none;}
+#game-container.layout-horizontal #action-log {left:204px;}
+#game-container.hide-log #action-log,#game-container.in-battle #hud,#game-container.in-battle #world-toolbar,#game-container.in-battle #action-log {display:none!important;}
+#battle-summary {position:absolute;top:0;left:0;right:0;text-align:center;padding:5px;background:#172e3d;color:#fff;font-size:12px;z-index:15;}
+#game-container.layout-horizontal #battle-summary {left:196px;}
+#game-container #combat-hud,#game-container #tactics-ui {box-sizing:border-box;left:6px;right:6px;bottom:6px;width:auto;height:auto;max-height:45%;overflow:auto;padding:8px;}
+#game-container.layout-horizontal #combat-hud,#game-container.layout-horizontal #tactics-ui {left:202px;right:6px;height:auto;}
+#game-container .combat-skill-grid {grid-template-columns:repeat(4,minmax(0,1fr));width:100%;max-width:640px;margin:auto;}
+#game-container .combat-skill-tile {padding:5px;gap:4px;}
+#game-container .combat-skill-tile small {font-size:11px!important;}
+#game-container #kbd-hint {display:none;}
+#game-container #toast-msg {z-index:400;max-width:90%;}
+@media(max-width:600px){
+ #game-container .ui-layer {padding:6px;}
+ #game-container .window-content {padding:12px;max-height:calc(100dvh - 12px);}
+ #game-container #city-panel .city-actions {grid-template-columns:repeat(2,minmax(0,1fr));}
+ #city-scene {height:150px;}
+ .world-row {grid-template-columns:64px 1fr;}.world-row button {width:100%;}.world-row img{width:64px;}
+ #game-container .window-header {gap:8px;flex-wrap:wrap;}
+ #game-container .combat-skill-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ #game-container .combat-skill-tile {flex-direction:row;min-height:48px!important;}
+ #game-container #combat-hud .pixel-skill-icon {width:32px;height:32px;flex-shrink:0;}
+ #game-container #hud .hud-badge {font-size:11px;padding:3px;}
+ #game-container #world-toolbar button {font-size:12px!important;padding:6px;}
+}
+/* Explicitly supersede the previous two-sidebar layout. */
+#game-container.layout-horizontal #desktop-sidebar {left:0;top:0;bottom:0;width:196px;border-radius:0;}
+#game-container.layout-horizontal .ui-layer,
+#game-container.layout-horizontal #screen-menu.ui-layer,
+#game-container.layout-horizontal #custom-alert.ui-layer,
+#game-container.layout-horizontal #custom-prompt.ui-layer {left:196px;right:0;width:auto;padding:12px;}
+#game-container.layout-horizontal #city-panel {width:auto;height:auto;}
+#game-container #city-panel > * {flex-shrink:0;}
+#game-container.layout-horizontal #action-log {top:auto;right:auto;bottom:74px;}
+#game-container.in-battle #desktop-sidebar button:not(:last-child) {pointer-events:none;opacity:.45;}
+#game-container.at-menu #desktop-sidebar {visibility:hidden;}
+
+/* 11.1 hotfix: remove the activity overlay without breaking legacy DOM references. */
+#game-container #action-log {display:none!important;}
+
+/* Compact square skill controls: four elements remain visible in one row. */
+#game-container #combat-hud #combat-skill-grid {grid-template-columns:repeat(4,minmax(0,1fr));width:100%;max-width:320px;gap:6px;margin-inline:auto;flex-shrink:0;}
+#game-container #combat-hud .combat-skill-tile {display:grid;box-sizing:border-box;width:100%;height:auto;min-height:0!important;aspect-ratio:1;align-content:center;justify-items:center;gap:2px;padding:3px!important;border-radius:8px!important;}
+#game-container #combat-hud .combat-skill-tile .pixel-skill-icon {width:26px;height:26px;border-radius:4px;}
+#game-container #combat-hud .combat-skill-tile .skill-label {font-size:11px;line-height:1.1;white-space:nowrap;}
+#game-container #combat-hud .combat-skill-tile .skill-meta {font-size:10px;line-height:1.1;}
+#game-container #combat-hud .skill-cooldown {border-radius:8px;}
+#game-container #combat-hud .combat-utility-tile {min-height:44px;}
+
+/* City header must stay above the overworld HUD and remain reachable on scroll. */
+#game-container #city-panel {z-index:80;}
+#game-container #city-panel > .city-titlebar {position:sticky;top:0;z-index:15;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px;}
+#game-container #city-panel .city-titlebar .btn-top-exit {display:block;min-width:112px;min-height:44px;margin:0;white-space:normal;}
+
+/* 11.1.1: stack city content below the measured campaign toolbar. */
+#game-container #hud,#game-container.layout-horizontal #hud {top:4px;left:8px;right:8px;max-width:860px;margin:0 auto;padding:6px 8px;gap:4px;border-radius:12px;}
+#game-container.layout-horizontal #hud {left:204px;}
+#game-container #city-panel,#game-container.layout-horizontal #city-panel {top:calc(var(--hud-h, 120px) + 12px);bottom:8px;height:auto;max-height:calc(100dvh - var(--hud-h, 120px) - 20px);margin:0 auto;border-radius:16px;padding:12px;gap:10px;box-shadow:0 8px 24px rgba(15,23,42,.16);}
+#game-container #city-panel > .city-titlebar {border-radius:12px;margin-bottom:0;padding:10px;}
+#game-container #city-panel #city-scene {margin:0;border-radius:10px;}

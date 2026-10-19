@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Isekai Feudalism • 11.1.1</title>
+    <link rel="stylesheet" href="styles.css?v=11.0">
+<link rel="stylesheet" href="v11.css?v=11.1.1-layout">
+</head>
+<body>
+<div id="game-container">
+    <canvas id="gameCanvas" aria-label="Mapa de campanha com nove cidades da lore de Isekai Feudalism"></canvas>
+    <div id="toast-msg">Notificação</div>
+    <div id="action-log"></div>
+
+    <nav id="desktop-sidebar" aria-label="Menu de jogo para PC">
+        <div class="side-brand">ISEKAI FEUDALISM</div><div class="side-subtitle">Painel de campanha • 11.1.1</div>
+        <div class="side-section-title">Acesso rápido</div>
+        <button onclick="openHeroSheet()">📜 Herói & Relíquias</button>
+        <button onclick="openPartyRoster()">👥 Esquadrão & Reserva</button>
+        <button onclick="openGuild()">⚔ Guilda & Missões</button>
+        <button onclick="openBarracks('recruit')">🛡 Quartel / Recrutar</button>
+        <button onclick="openMarket()">⚖ Mercado</button>
+        <button onclick="openCamp()">⛺ Acampamento</button>
+        <div class="side-divider"></div>
+        <button onclick="saveGameToStorage(true)" style="border-color:var(--hp-green);">💾 Salvar progresso</button>
+        <button onclick="openSettingsWindow()">⚙ Configurações</button>
+        <button onclick="returnToMainMenu()" style="border-color:var(--enemy-red);">⌂ Menu principal</button>
+    </nav>
+    <aside id="desktop-dev-sidebar" aria-label="Ferramentas de teste do modo desenvolvedor">
+        <div id="desktop-dev-off"><div class="side-section-title">Painel de testes</div><p style="font-size:14px; color:var(--text-muted); line-height:1.5;">Ative o Modo Dev nas Configurações para exibir atalhos de teste aqui.</p><button onclick="openSettingsWindow()">⚙ Abrir Configurações</button></div>
+        <div id="desktop-dev-tools">
+            <div class="side-section-title">🛠 Ferramentas de teste</div>
+            <button onclick="devAddGold()">🪙 Adicionar 25.000 ouro</button>
+            <button onclick="devAddLevels(5)">⬆ Subir 5 níveis</button>
+            <button onclick="devUnlockAllCities()">🔓 Liberar cidades</button>
+            <button onclick="devGrantAllRankSSets()">🎁 Relíquias Rank S</button>
+            <button onclick="devUnlockPartyCompanions()">💖 Liberar esposas + Rank S</button>
+            <div class="side-divider"></div>
+            <button onclick="openBarracks('recruit')">🧪 Testar recrutamento</button>
+            <button onclick="triggerRandomEncounter()">⚔ Testar encontro</button>
+            <small style="color:var(--text-muted); line-height:1.4;">Recursos de teste do modo Dev.</small>
+        </div>
+    </aside>
+    <div id="kbd-hint" role="status" aria-live="polite"></div>
+
+    <div id="custom-alert" class="ui-layer" style="z-index: 300;">
+        <div class="window-content" style="max-width: 395px; text-align: center;">
+            <div class="window-header">
+                <h3 id="alert-title">Aviso</h3>
+                <button class="btn-top-exit" onclick="closeCustomAlert()">✕ Sair</button>
+            </div>
+            <p id="alert-msg" style="font-size:15px; margin-bottom: 16px; white-space: pre-line;"></p>
+            <button id="alert-replay-btn" onclick="replayLastMission()" style="width:100%; padding:10px; margin-bottom:7px; display:none; border-color:var(--hp-green); color:var(--hp-green);">↻ Jogar Missão Novamente</button>
+            <button onclick="closeCustomAlert()" style="width: 100%; padding: 10px;">Confirmar</button>
+        </div>
+    </div>
+
+    <div id="custom-prompt" class="ui-layer" style="z-index: 300;">
+        <div class="window-content" style="max-width: 395px; text-align: center;">
+            <div class="window-header">
+                <h3 id="prompt-title">Confirmação</h3>
+                <button class="btn-top-exit" onclick="closeCustomPrompt()">✕ Sair</button>
+            </div>
+            <p id="prompt-msg" style="font-size:15px; color:var(--text-muted);"></p>
+            <input type="text" id="prompt-input" style="width:100%; background:#09152b; color:#fff; border:1.5px solid var(--accent); padding:10px; border-radius:10px; font-size:17px; margin-bottom: 14px;">
+            <div style="display: flex; gap: 8px; justify-content: center;">
+                <button onclick="confirmCustomPrompt()" style="flex:1; border-color:var(--hp-green);">Confirmar</button>
+                <button onclick="closeCustomPrompt()" style="flex:1;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MENU PRINCIPAL -->
+    <div id="screen-menu" class="ui-layer active">
+        <div class="window-content" style="max-width: 380px; text-align: center; padding: 22px 16px;">
+            <div style="font-size:13px; color: var(--accent); font-weight: bold; letter-spacing: 1.5px; margin-bottom: 4px;">ISEKAI FEUDALISM • RPG TÁTICO</div>
+            <h1 style="font-size:32px; margin-bottom: 6px; color: #ffffff;">ISEKAI FEUDALISM</h1>
+            <p style="color: var(--gold); font-size:14px; font-weight: bold; margin-bottom: 18px;">11.1.1 • Nove cidades, uma nova jornada</p>
+            <div class="environment-switch"><button id="channel-live" onclick="switchEnvironment('live')">Live</button><button id="channel-dev" onclick="switchEnvironment('dev')">Dev</button></div><p id="environment-label"></p><div class="main-menu-actions" aria-label="Ações principais">
+                <button class="main-menu-tile" onclick="openCharacterCreation()"><span class="menu-app-icon menu-app-start" aria-hidden="true">⚔️</span><strong>Nova Jornada</strong><small>Começar aventura</small></button>
+                <button id="btn-continue-game" class="main-menu-tile" onclick="loadGameFromStorage()"><span class="menu-app-icon menu-app-continue" aria-hidden="true">▶️</span><strong>Continuar</strong><small>Retomar progresso</small></button>
+                <button class="main-menu-tile" onclick="openSettingsWindow()"><span class="menu-app-icon menu-app-settings" aria-hidden="true">⚙️</span><strong>Configurações</strong><small>Interface e modo dev</small></button>
+                <button class="main-menu-tile" onclick="openWindow('help-window')"><span class="menu-app-icon menu-app-guide" aria-hidden="true">📖</span><strong>Guia</strong><small>Regras e sistemas</small></button>
+                <button class="main-menu-tile" onclick="openWindow('changelog-window')"><span class="menu-app-icon menu-app-guide" aria-hidden="true">🗒️</span><strong>Atualizações</strong><small>Histórico Alpha</small></button>
+                <button class="main-menu-tile" onclick="toggleDisplayMode()"><span class="menu-app-icon menu-app-display" aria-hidden="true">⛶</span><strong>Tela</strong><small>Alternar exibição</small></button>
+            </div>
+            <p class="legacy-link"><a href="legacy-10.11.html">Abrir Alpha 10.11 e seus saves</a></p><small>11.1.1 mantém os saves da 11.0. Live e Dev possuem campanhas separadas.</small><div id="menu-dev-badge" style="margin-top: 12px; font-size:13px; color: var(--hp-green); display: none;">🛠️ Modo Desenvolvedor ATIVO</div>
+        </div>
+    </div>
+
+
+    <div id="changelog-window" class="ui-layer"><div class="window-content changelog-content"><div class="window-header"><div><h2>🗒️ Histórico de atualizações</h2><small>Resumo das versões preservadas no Drive e do site publicado</small></div><button class="btn-top-exit" onclick="closeWindow('changelog-window')">✕ Fechar</button></div>
+        <div class="changelog-entry"><h3>11.1.1 • Organização dos menus</h3><p>Menu geral no topo e painel da cidade logo abaixo, respeitando a altura do menu e mantendo a saída para o mapa acessível.</p></div><div class="changelog-entry"><h3>11.1 • Ajuste pontual de interface</h3><p>Removido da tela o registro de ações sobre o cenário. Saves e regras da 11.0 preservados.</p></div><div class="changelog-entry"><h3>11.0 • Expansão do mundo</h3><p>Nove cidades em pixel art, exploração livre, viagens gratuitas, atividades no mapa, forja elemental, campanhas Live/Dev separadas, controles por toque e mouse e combate com tempo fixo.</p><a href="reports/relatorio-11.0.md">Relatório de testes e correções</a></div><div class="changelog-entry"><h3>Alpha 10.11 • Combate modular</h3><p>Interface de posicionamento e HUD de batalha agora acompanham o estado da luta após qualquer transição; unidades e ações organizadas em grade; habilidades elementais podem ser acionadas por tiles e teclas 1–4 sem remover o disparo automático; criados 20 ícones pixel art para 4 elementos em 5 estágios de evolução; APIs internas agrupadas em BattleModule sem alterar o save.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.10 • Coesão top-down</h3><p>Marca revisada sem referências a outra franquia; nove fundos de cidade e mapa colorido preservando os nomes do mapa original; ícones pixel art por rank e para habilidades elementais; ficha do herói organizada por abas e tabela de atributos; XP centralizado com curva suave após Nv 10; changelog acessível no menu.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.9 • Revisão de combate e mapa</h3><p>Escudos de terra com setores acumuláveis e duração; ajustes da interface de tática e combate; desbloqueios de modo desenvolvedor; mapa do overworld e telas revisados.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.8 • Site publicado</h3><p>Versão intermediária publicada no site; este arquivo não aparece como HTML separado na pasta histórica do Drive.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.7 • Sistemas de combate</h3><p>Magos e chefes inimigos usam habilidades elementais; tropas comuns inimigas escaladas ao herói, bosses com despertar por continente, tenacidade e reservas inimigas por rank (B 10, A 20, S 30); combate e itens balanceados para dificuldade mais justa.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.6 • Usabilidade</h3><p>Aumento dos botões de recrutamento e fontes; venda separada por arma/armadura/botas/anel, forja com custo crescente, runas exclusivas de drop e restrições de arma por classe.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.5 • Cidades e progressão</h3><p>Cabeçalho de cidade com nome, progresso do herói, ouro sem barra e conclusão regional; requisitos de Rank S, recompensas e itens regionais; tela de progressão própria.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.4 • Tema claro</h3><p>Tema claro com painéis translúcidos; menus internos e ações das cidades migrados de listas para cartões de ícone; primeira tela de cidade com fundo ilustrado.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.3 • Interface de cidade</h3><p>Ações de cidade em mosaicos com ícone e rótulo, apresentação de status e menus preparada para orientação vertical e horizontal.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.2 • UX tática</h3><p>Morte permanente de tropas comuns, estatísticas das tropas alinhadas ao protagonista, foco do herói no boss, replay da missão, rotação de elementos nos ataques básicos e passivas contadas por ataques; melhoria da apresentação visual de batalha.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.1 • Reserva e progressão</h3><p>Rank S deixa de ser bloqueado; party aceita reserva fora do campo e substitui aliados caídos. Auto-posicionamento prioriza herói/esposas, depois Rank S e tropas comuns; ficha exibe pontos livres, venda de itens, escolha de classe/elemento, +3 por atributo e +5 livres por nível, treino unificado e fundo procedural de batalha.</p></div>
+        <div class="changelog-entry"><h3>Alpha 10.0 • Passivas e companheiras</h3><p>Fundação de combate com naturezas/passivas elementais, criação de protagonista por classe e elemento, party de companheiras e ficha de herói; serve de base para as versões seguintes.</p></div>
+        <p class="changelog-note">O histórico de Alpha 10.0 a 10.7 foi conferido com os arquivos HTML arquivados no Google Drive. As versões 10.8 e 10.9 refletem o site trabalhado depois desse arquivo histórico.</p>
+    </div></div>
+
+    <!-- CONFIGURAÇÕES & MODO DESENVOLVEDOR -->
+    <div id="settings-window" class="ui-layer">
+        <div class="window-content">
+            <div class="window-header"><h2>⚙️ Configurações (11.1.1)</h2><button class="btn-top-exit" onclick="exitMenuToPrevious('settings-window')">✕ Sair</button></div>
+            <div class="switch-row"><div><strong style="font-size:16px; color:#fff;">Modo Desenvolvedor</strong><br><small style="color:var(--text-muted);">Libera Rank S por 1g e botões dev.</small></div><button id="btn-toggle-dev" class="dev-toggle-btn" onclick="toggleDevMode()">OFF</button></div>
+            <div class="switch-row"><div><strong style="font-size:16px; color:#fff;">▣ Interface para PC</strong><br><small style="color:var(--text-muted);">Layout automático: celular vertical e desktop com painel lateral.</small></div><button class="btn-layout-mode" onclick="toggleLayoutOrientation()">↔ Horizontal</button></div>
+            <div class="switch-row"><div><strong style="font-size:16px; color:#fff;">⛶ Proporção de Exibição</strong><br><small style="color:var(--text-muted);">Alterna janela ajustada ou tela cheia.</small></div><button class="btn-display-mode" onclick="toggleDisplayMode()">⛶ Tela</button></div>
+            <div class="interface-options"><label>Tamanho do texto <input id="text-scale" type="range" min="1" max="1.3" step="0.05" oninput="applyInterfacePreference('textScale',this.value)"></label><label>Tamanho dos botões <input id="button-scale" type="range" min="1" max="1.3" step="0.05" oninput="applyInterfacePreference('buttonScale',this.value)"></label></div><div id="settings-dev-tools" style="display:none; background:rgba(74,222,128,0.1); border:1.5px solid var(--hp-green); border-radius:12px; padding:12px; margin-top:10px;">
+                <h3 style="font-size:16px; color:var(--hp-green); text-align:left; margin-bottom:8px;">⚡ Painel Rápido Dev</h3>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <button onclick="devAddGold()">🪙 +25k Gold</button><button onclick="devAddLevels(5)">⬆️ +5 Níveis</button>
+                    <button onclick="devUnlockAllCities()">🔓 9 Cidades</button><button onclick="devGrantAllRankSSets()">🎁 Relíquias S</button>
+                    <button onclick="devUnlockPartyCompanions()">💖 Esposas + guerreiros S</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GUIA -->
+    <div id="help-window" class="ui-layer">
+        <div class="window-content">
+            <div class="window-header"><h2>📖 Guia de Sobrevivência (11.1.1)</h2><button class="btn-top-exit" onclick="exitMenuToPrevious('help-window')">✕ Sair</button></div>
+            <p><strong style="color:var(--gold);">1. Substituição Tática em Combate:</strong> Heróis Rank S agora entram como reservas de batalha. Caso uma unidade morra, um substituto disponível na party será jogado automaticamente na posição do caído para ajudar!</p>
+            <p><strong style="color:var(--gold);">2. Evolução (+3 All, +5 Livres):</strong> Subir de nível garante 3 pontos a todos os status base de forma automática, e concede 5 pontos livres para refinar a build.</p>
+            <p><strong style="color:var(--gold);">3. Acampamento de Treino Unificado:</strong> Agora você treina e aumenta o teto de todos os 4 status do personagem com um único clique rápido e econômico no acampamento.</p>
+            <p><strong style="color:var(--gold);">4. Vendas na Loja:</strong> É possível vender relíquias indesejadas que não estão equipadas diretamente na nova aba "Vender" do Mercado para acumular Ouro.</p>
+        </div>
+    </div>
+
+    <div id="new-journey-confirm" class="ui-layer" role="dialog" aria-modal="true" aria-labelledby="new-journey-title">
+        <div class="window-content" style="max-width:395px;text-align:center">
+            <div class="window-header"><h2 id="new-journey-title">Nova jornada</h2><button onclick="openWindow('screen-menu')">✕ Sair</button></div>
+            <p>Substituir a campanha deste ambiente?</p>
+            <p>O progresso atual será substituído ao concluir a criação do novo personagem.</p>
+            <div style="display:flex;gap:8px"><button style="flex:1" onclick="confirmNewJourney()">Sim</button><button style="flex:1" onclick="openWindow('screen-menu')">Não</button></div>
+        </div>
+    </div>
+    <!-- CRIAÇÃO DE PERSONAGEM -->
+    <div id="screen-char-create" class="ui-layer">
+        <div class="window-content" style="text-align: center;">
+            <div class="window-header"><h2>Criação do Protagonista</h2><button class="btn-top-exit" onclick="returnToMainMenu()">✕ Sair</button></div>
+            <div style="margin: 12px 0;">
+                <label style="font-weight: bold; display: block; margin-bottom: 6px; font-size:16px; color:#fff;">Nome do Herói:</label>
+                <input type="text" id="input-hero-name" value="Rudeus" style="background:#09152b; color:#fff; border:1.5px solid var(--accent); padding:10px 15px; border-radius:10px; font-size:17px; width:90%;">
+            </div>
+            <h3 style="font-size:16px; margin-top: 14px; color: var(--gold);">1. Classe de Combate</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;" id="char-class-grid">
+                <button onclick="setCharClass('MAGE')" id="btn-cls-MAGE" class="class-btn active">🔮 Mago</button>
+                <button onclick="setCharClass('FIGHTER')" id="btn-cls-FIGHTER" class="class-btn">⚔ Guerreiro</button>
+                <button onclick="setCharClass('SHOOTER')" id="btn-cls-SHOOTER" class="class-btn">🏹 Arqueiro</button>
+                <button onclick="setCharClass('TANK')" id="btn-cls-TANK" class="class-btn">🛡️ Tanque</button>
+                <button onclick="setCharClass('SUPPORT')" id="btn-cls-SUPPORT" class="class-btn">✨ Suporte</button>
+            </div>
+            <h3 style="font-size:16px; margin-top: 18px; color: var(--accent);">2. Natureza Elemental Inicial</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                <button onclick="finalizeNewGame('FIRE')" style="border-color:var(--elem-fire); padding: 12px 6px;">🔥 Fogo<br><small style="color:#fca5a5;">Combustão</small></button>
+                <button onclick="finalizeNewGame('WATER')" style="border-color:var(--elem-water); padding: 12px 6px;">💧 Água<br><small style="color:#bae6fd;">Prisão de Gelo</small></button>
+                <button onclick="finalizeNewGame('EARTH')" style="border-color:var(--elem-earth); padding: 12px 6px;">🪨 Terra<br><small style="color:#fef08a;">Bastião Escudo</small></button>
+                <button onclick="finalizeNewGame('AIR')" style="border-color:var(--elem-air); padding: 12px 6px;">🌪️ Ar<br><small style="color:#bbf7d0;">Repulsão</small></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="battle-summary" hidden></div><nav id="world-toolbar" aria-label="Exploração"><button onclick="openWorldMap()">🗺 Cidades</button><button onclick="showWorldOverview()">Ver mapa inteiro</button><button onclick="openNearbyEvents()">Explorar arredores</button></nav><!-- HUD SUPERIOR -->
+    <div id="hud">
+        <div class="hud-group">
+            <span id="hud-hero" class="hud-badge">Herói: Nv 3</span><span id="hud-element" class="hud-badge">🔥 Fogo</span>
+            <span id="hud-mana" class="hud-badge" style="color: var(--mana-blue);">💧 42/42</span>
+            <span id="hud-party-cap" class="hud-badge">⚔ 1/3</span><span id="hud-gold" class="hud-badge" style="color: var(--gold);">🪙 2.700g</span>
+        </div>
+        <div class="hud-group">
+            <button onclick="openHeroSheet()">📜 Herói & Itens</button><button onclick="openBarracks('naming')">👥 Party</button>
+            <button onclick="openSettingsWindow()">⚙️ Config</button><button onclick="saveGameToStorage(true)" style="border-color: var(--hp-green);">💾 Salvar</button>
+            <button onclick="returnToMainMenu()" style="border-color: var(--enemy-red);">✕ Menu</button>
+        </div>
+    </div>
+
+    <!-- MENU DA CIDADE -->
+    <div id="city-panel">
+        <div class="window-header city-titlebar">
+            <div><h2 id="city-name" style="font-size:22px;">Vila Buena</h2><small id="city-desc-text" style="font-size:13px;">Vila pacata.</small></div>
+            <button class="btn-top-exit" onclick="closeCity()">← Voltar ao mapa</button>
+        </div>
+        <img id="city-scene" alt="Vista da cidade" width="480" height="320"><p id="city-reputation"></p><div class="city-top-hud" aria-label="Herói, tesouro e progressão da cidade">
+            <div class="city-top-metric city-hero-progress"><span class="city-top-icon" aria-hidden="true">🧙</span><span class="city-top-copy"><small>HERÓI</small><strong id="city-top-hero">Rudeus • Nv 3</strong><small id="city-top-xp-label">0% até o próximo nível</small><span class="city-control-track" role="progressbar" aria-label="Experiência até o próximo nível" aria-valuemin="0" aria-valuemax="100"><i class="city-control-fill" id="city-hero-xp-fill"></i></span></span></div>
+            <div class="city-top-metric city-gold-card"><span class="city-top-icon" aria-hidden="true">🪙</span><span class="city-top-copy"><small>OURO</small><strong id="city-top-gold">2.700g</strong></span></div>
+            <button type="button" class="city-top-metric city-progress-card" onclick="openCityProgression()" aria-label="Abrir progressão e itens disponíveis desta cidade">
+                <span class="city-top-icon" aria-hidden="true">🏅</span><span class="city-top-copy"><small>PROGRESSÃO</small><strong id="city-top-progress">0% • Em disputa</strong><span class="city-control-track" role="progressbar" aria-label="Conclusão da cidade" aria-valuemin="0" aria-valuemax="100"><i class="city-control-fill" id="city-progress-fill"></i></span></span>
+            </button>
+        </div>
+        <div class="city-hero-banner">
+            <div style="display:flex; justify-content:space-between; align-items:center;"><strong style="font-size:15px; color:#fff;">Status da Região</strong><span id="city-stage-pill" class="tag-pill" style="background:rgba(56,189,248,0.2); color:var(--accent);">Etapa 1/9</span></div>
+            <div class="city-meta-pills"><span id="city-size-badge" class="city-pill">Cap Nv 100</span><span id="city-cont-badge" class="city-pill">Continente</span></div>
+        </div>
+        <div class="city-actions" aria-label="Ações da cidade">
+            <button class="city-action-tile" onclick="openGuild()" aria-label="Abrir Guilda de Aventureiros"><span class="city-app-icon city-app-guild" aria-hidden="true"><img src="assets/v11/service-guild.png" width="48" height="48" alt=""></span><span class="city-app-label">Guilda</span><span class="btn-sub">Missões e contratos</span></button>
+            <button class="city-action-tile" onclick="openBarracks('recruit')" aria-label="Abrir Quartel Tático"><span class="city-app-icon city-app-barracks" aria-hidden="true"><img src="assets/v11/service-barracks.png" width="48" height="48" alt=""></span><span class="city-app-label">Quartel</span><span class="btn-sub">Tropas e esquadrão</span></button>
+            <button class="city-action-tile" onclick="openMarket()" aria-label="Abrir Mercado Comercial"><span class="city-app-icon city-app-market" aria-hidden="true"><img src="assets/v11/service-shop.png" width="48" height="48" alt=""></span><span class="city-app-label">Mercado</span><span class="btn-sub">Itens e relíquias</span></button>
+            <button class="city-action-tile" onclick="openForge()"><img src="assets/v11/service-forge.png" alt="" width="48" height="48"><span class="city-app-label">Forja</span><span class="btn-sub">Refino e runas</span></button><button class="city-action-tile" onclick="openHeroSheet()" aria-label="Abrir ficha do herói"><span class="city-app-icon city-app-hero" aria-hidden="true">🎒</span><span class="city-app-label">Herói</span><span class="btn-sub">Status e inventário</span></button>
+            <button class="city-action-tile" onclick="openCamp()" aria-label="Abrir Acampamento"><span class="city-app-icon city-app-camp" aria-hidden="true"><img src="assets/v11/service-training.png" width="48" height="48" alt=""></span><span class="city-app-label">Acampamento</span><span class="btn-sub">Treino da equipe</span></button>
+            <button id="btn-city-ship" class="city-action-tile" onclick="useCityPort()" style="display: none;" aria-label="Viajar para outra cidade"><span class="city-app-icon city-app-ship" aria-hidden="true">⛵</span><span class="city-app-label">Travessia</span><span class="btn-sub" id="btn-city-ship-sub">Navegar para outro continente</span></button>
+        </div>
+    </div>
+
+
+    <div id="city-progression-window" class="ui-layer city-progression-window" aria-label="Progressão da cidade">
+        <div class="window-content">
+            <div class="window-header"><div><h2 id="city-progression-title">Progressão da Região</h2><small id="city-progression-subtitle">Requisitos e itens disponíveis</small></div><button class="btn-top-exit" onclick="closeWindow('city-progression-window')">✕ Fechar</button></div>
+            <div id="city-progression-summary" class="city-progression-summary"></div>
+            <h3 class="city-progression-section-title">Itens disponíveis nesta etapa</h3>
+            <p class="city-progression-note">Itens atualmente liberados para compra na loja desta região.</p>
+            <div id="city-progression-items" class="city-progression-items"></div>
+        </div>
+    </div>
+
+    <div id="world-window" class="ui-layer"><div class="window-content"><div class="window-header"><h2>Mapa de cidades</h2><button onclick="closeWindow('world-window')">Fechar</button></div><p>Viagens gratuitas para cidades visitadas. Caminhe livremente para descobrir novos destinos; o risco aumenta por região.</p><div id="world-list"></div></div></div><div id="events-window" class="ui-layer"><div class="window-content"><div class="window-header"><h2>Exploração livre</h2><button onclick="closeWindow('events-window')">Fechar</button></div><div id="event-list"></div></div></div><!-- JANELAS INTERNAS -->
+    <div id="guild-window" class="ui-layer">
+        <div class="window-content"><div class="window-header"><h2>⚔ Guilda de Aventureiros</h2><div style="display:flex; gap:5px; align-items:center;"><button onclick="rotateCityQuests()" style="padding:6px 9px; font-size:13px; margin:0; border-color:var(--gold); color:var(--gold);">🔄 Novos Contratos</button><button class="btn-top-exit" onclick="closeWindow('guild-window')">✕ Sair</button></div></div><div id="guild-power-banner" style="background:var(--panel-card); border:1px solid var(--panel-border); padding:8px 10px; border-radius:10px; margin-bottom:10px; font-size:13px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;"></div><div id="guild-quests"></div></div>
+    </div>
+    <div id="barracks-window" class="ui-layer">
+        <div class="window-content"><div class="window-header"><h2>🛡️ Quartel & Comando</h2><button class="btn-top-exit" onclick="closeWindow('barracks-window')">✕ Sair</button></div><div class="tab-bar"><button id="tab-barracks-recruit" class="tab-btn active" onclick="switchBarracksTab('recruit')">Recrutar</button><button id="tab-barracks-naming" class="tab-btn" onclick="switchBarracksTab('naming')">Esquadrão & Reservas</button></div><div id="barracks-content-recruit"></div><div id="barracks-content-naming" style="display: none;"></div></div>
+    </div>
+    <div id="market-window" class="ui-layer">
+        <div class="window-content"><div class="window-header"><h2>⚖️ Mercado Central</h2><button class="btn-top-exit" onclick="closeWindow('market-window')">✕ Sair</button></div><div id="market-gold-banner" class="shop-gold-bar"><span>🪙 Ouro Disponível:</span><span id="market-gold-val" style="color:var(--gold); font-size:16px;">2.700g</span></div><div id="market-main-tabs" class="tab-bar market-main-tabs"><button id="tab-market-potions" class="tab-btn active" onclick="switchMarketTab('potions')">Elixires</button><button id="tab-market-weapons" class="tab-btn" onclick="switchMarketTab('weapons')">Armas</button><button id="tab-market-armor" class="tab-btn" onclick="switchMarketTab('armor')">Armaduras</button><button id="tab-market-boots" class="tab-btn" onclick="switchMarketTab('boots')">Botas</button><button id="tab-market-rings" class="tab-btn" onclick="switchMarketTab('rings')">Anéis</button><button id="tab-market-forge" class="tab-btn" onclick="switchMarketTab('forge')">Forja</button><button id="tab-market-sell" class="tab-btn" onclick="switchMarketTab('sell')" style="border-color:var(--gold);">Vender</button><button id="tab-market-dev" class="tab-btn" onclick="switchMarketTab('dev')" style="display:none; border-color:var(--hp-green);">Dev</button></div><div id="market-items-list"></div></div>
+    </div>
+    <div id="hero-sheet-window" class="ui-layer"><div class="window-content"><div class="window-header"><h2>📜 Ficha do Herói</h2><button class="btn-top-exit" onclick="closeWindow('hero-sheet-window')">✕ Sair</button></div><div id="hero-sheet-content"></div></div></div>
+    <div id="camp-window" class="ui-layer">
+        <div class="window-content"><div class="window-header"><h2>⛺ Centro de Treinamento</h2><button class="btn-top-exit" onclick="closeWindow('camp-window')">✕ Sair</button></div><div id="camp-gold-banner" class="shop-gold-bar"><span>🪙 Ouro em Caixa:</span><span id="camp-gold-val" style="color:var(--gold); font-size:16px;">2.700g</span></div><div id="camp-party-list"></div></div>
+    </div>
+
+    <!-- TÁTICAS E COMBATE -->
+    <div id="tactics-ui">
+        <div class="window-header" style="padding: 0 0 6px 0; margin-bottom: 6px;"><div><h3 style="font-size:16px;">Posicionamento Tático</h3><div id="tactics-formation-info" style="font-size:12px; color: var(--gold);"></div></div><button class="btn-top-exit" onclick="abortTacticsBattle()">✕ Sair</button></div>
+        <div id="roster-container"></div>
+        <div style="display:flex; gap:5px; margin-top:6px;">
+            <button id="btn-auto-place" onclick="autoPlaceUnits()" style="flex:1.4; margin:0; padding:8px 6px; font-size:13px;">⚔ Auto-posicionar</button>
+            <button onclick="clearPlacement()" style="flex:0 0 auto; margin:0; padding:8px 9px; font-size:13px;">Limpar</button>
+            <button id="btn-start-combat" onclick="beginRealTimeCombat()" disabled style="flex:1; margin:0; padding: 8px; border-color: var(--hp-green); font-size:14px;">▶ Batalhar</button>
+        </div>
+    </div>
+    <div id="combat-hud" aria-label="Painel de combate">
+        <div class="combat-command-row">
+            <div class="combat-status-card"><strong id="combat-mana-status">💧 Mana: 42/42</strong><small id="combat-hit-counter">⚔ Básicos: 0</small></div>
+            <button class="combat-retreat" onclick="abortTacticsBattle()" aria-label="Recuar da batalha">↩ <span>Recuar</span></button>
+        </div>
+        <div id="combat-skill-grid" class="combat-skill-grid" role="group" aria-label="Habilidades elementais"></div>
+        <div class="combat-utility-grid">
+            <button onclick="castSupportActiveHeal()" id="btn-combat-support" class="combat-utility-tile"><span class="utility-icon">✚</span><span class="utility-copy"><strong>Cura do esquadrão</strong><small>9 Mana · tecla 5</small></span></button>
+            <button onclick="useCombatPotion()" id="btn-combat-potion" class="combat-utility-tile"><span class="utility-icon">🧪</span><span class="utility-copy"><strong>Poção</strong><small><span id="combat-potion-count">0</span> · tecla 6</small></span></button>
+        </div>
+        <div class="combat-passive-strip"><span id="passive-slot-primary">🔥 Natureza ativa</span><span id="passive-slot-secondary">🔒 Próximo despertar</span></div>
+    </div>
+</div>
+<script defer src="js/core/services.js?v=39db98805e"></script>
+<script defer src="js/core/content.js?v=00eae00e67"></script>
+<script defer src="js/world/navigation.js?v=9c86949215"></script>
+<script defer src="js/combat/characters.js?v=59be0ee59b"></script>
+<script defer src="js/legacy.js?v=a1f631a15a"></script>
+<script defer src="js/ui/upgrade.js?v=2461af2519"></script>
+</body>
+</html>
